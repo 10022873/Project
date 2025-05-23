@@ -1,0 +1,295 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+// Global constants
+const char X = 'X';
+const char O = 'O';
+const int BOARD_SIZE = 3;
+const char EMPTY = '_';
+const string SAVE_FILE = "proj1_data.txt";
+
+// Function prototypes
+void mainMenu();
+void saveGame(char board[BOARD_SIZE][BOARD_SIZE]);
+void playGame();
+void displayBoard(char board[BOARD_SIZE][BOARD_SIZE]);
+void clearBoard(char board[BOARD_SIZE][BOARD_SIZE]);
+char chooseSymbol();
+bool makeMove(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char symbol);
+char checkWin(char board[BOARD_SIZE][BOARD_SIZE]);
+
+int main() {
+    mainMenu();
+    return 0;
+}
+
+// Main menu function
+void mainMenu() {
+    int choice;
+    do {
+        cout << "Welcome to Tic-Tac-Toe\n";
+        cout << "What would you like to do?\n";
+        cout << "1. Play New Game\n";
+        cout << "2. Quit\n";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                playGame();
+                break;
+            case 2:
+                cout << "Thank you for playing Tic-Tac-Toe\n";
+                break;
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 2);
+}
+
+// Save the current game state to a file
+void saveGame(char board[BOARD_SIZE][BOARD_SIZE]) {
+  ofstream outFile(SAVE_FILE,ios::app);
+    if (outFile.is_open()) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                outFile << board[i][j] << " ";
+            }
+	    outFile << "\n";
+        }
+	outFile << "\n";
+        outFile.close();
+    } else {
+        cout << "Error saving game state to file.\n";
+    }
+}
+
+// Display's the current board 
+void displayBoard(char board[BOARD_SIZE][BOARD_SIZE]) {
+    cout << "Current board:\n";
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            cout << board[i][j] << " ";
+        }
+	cout << "\n";
+    }
+}
+
+// Clear's the current board
+void clearBoard(char board[BOARD_SIZE][BOARD_SIZE]) {
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            board[i][j] = EMPTY;
+        }
+    }
+    displayBoard(board);
+}
+// Prompt the player for thier symbol 
+char chooseSymbol() {
+    char XorO;
+    do {
+        cout << "What do you want as your symbol? (options are X or O): ";
+        cin >> XorO;
+        if( XorO != 'O' && XorO != 'X')
+            cout << "Invalid symbol. Try again.\n";
+    } while(XorO != 'O' && XorO != 'X');
+    return XorO;
+}
+
+// Method too play the game
+void playGame() {
+    char board[BOARD_SIZE][BOARD_SIZE];
+    clearBoard(board);
+    char currentPlayer = chooseSymbol(); // Initial player (X or O)
+    bool gameOver = false; // Flag to control the game loop
+
+    do {
+        displayBoard(board);
+        int row, col;
+
+        // Prompt the current player for their move
+        cout << "Player " << currentPlayer << ", enter row and col (0-2): ";
+        cin >> row >> col;
+
+        // Attempt to make the move
+        if (makeMove(board, row, col, currentPlayer)) {
+            // Check if the current player has won
+            if (checkWin(board) == currentPlayer) {
+                displayBoard(board);
+                cout << "Player " << currentPlayer << " wins!\n";
+                cout << "Thanks for playing!\n";
+                gameOver = true; // Set the flag to end the game
+		saveGame(board);//Saving the move made
+	    }
+            // Check if the game is a tie
+            else if (checkWin(board) == 'T') {
+                displayBoard(board);
+                cout << "It's a tie!\n";
+                cout << "Thanks for playing!\n";
+                gameOver = true; // Set the flag to end the game
+		saveGame(board);//Saving the move made
+	    }
+
+            // Switch players for the next turn
+	    saveGame(board);//Saving the move made
+            currentPlayer = (currentPlayer == X) ? O : X;
+        } else {
+            cout << "Invalid move. Try again.\n";
+        }
+    } while (!gameOver); // Continue the loop until the game is over
+}
+
+// Check if move is vaild and if so makes the move
+bool makeMove(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char symbol){
+    if(row >= BOARD_SIZE || col >= BOARD_SIZE || row < 0 || col < 0)
+        return false;
+    else if(board[row][col] != EMPTY)
+        return false;
+    else {
+        board[row][col] = symbol;
+	saveGame(board);
+	return true;
+    }
+}
+
+// Checks for all winning(return char of winner) and tying conditions(return T), else move on(return G) 
+char checkWin(char board[BOARD_SIZE][BOARD_SIZE]){
+    // Check rows for X
+    if(board[0][0] == 'X' && board[0][1] == 'X' && board[0][2] == 'X')
+        return X;
+    else if(board[1][0] == 'X' && board[1][1] == 'X' && board[1][2] == 'X')
+        return X;
+    else if(board[2][0] == 'X' && board[2][1] == 'X' && board[2][2] == 'X')
+        return X;
+    // Check columns for X
+    else if(board[0][0] == 'X' && board[1][0] == 'X' && board[2][0] == 'X')
+        return X;
+    else if(board[0][1] == 'X' && board[1][1] == 'X' && board[2][1] == 'X')
+        return X;
+    else if(board[0][2] == 'X' && board[1][2] == 'X' && board[2][2] == 'X')
+        return X;
+    // Check diagonals for X
+    else if(board[0][0] == 'X' && board[1][1] == 'X' && board[2][2] == 'X')
+        return X;
+    else if(board[2][0] == 'X' && board[1][1] == 'X' && board[0][2] == 'X')
+        return X;
+    // Check rows for O
+    else if(board[0][0] == 'O' && board[0][1] == 'O' && board[0][2] == 'O')
+        return 'O';
+    else if(board[1][0] == 'O' && board[1][1] == 'O' && board[1][2] == 'O')
+        return 'O';
+    else if(board[2][0] == 'O' && board[2][1] == 'O' && board[2][2] == 'O')
+        return 'O';
+    // Check columns for O
+    else if(board[0][0] == 'O' && board[1][0] == 'O' && board[2][0] == 'O')
+        return 'O';
+    else if(board[0][1] == 'O' && board[1][1] == 'O' && board[2][1] == 'O')
+        return 'O';
+    else if(board[0][2] == 'O' && board[1][2] == 'O' && board[2][2] == 'O')
+        return 'O';
+    // Check diagonals for O
+    else if(board[0][0] == 'O' && board[1][1] == 'O' && board[2][2] == 'O')
+        return 'O';
+    else if(board[2][0] == 'O' && board[1][1] == 'O' && board[0][2] == 'O')
+        return 'O';
+    // Check for tie
+    else if(board[0][0] != EMPTY && board[0][1] != EMPTY && board[0][2] != EMPTY &&
+            board[1][0] != EMPTY && board[1][1] != EMPTY && board[1][2] != EMPTY &&
+            board[2][0] != EMPTY && board[2][1] != EMPTY && board[2][2] != EMPTY)
+        return 'T';
+    else
+        return 'G';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+  
+   
+  
+ 
+ 
+ 
+ 
+ 
+ 
+   
